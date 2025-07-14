@@ -181,6 +181,10 @@ class CollectModelViewSet(ModelViewSet):
         """
         查询云的所有区域
         """
+        # # 测试commit
+        print("list_regions " )
+        params = requests.POST.dict()
+        region_id = params["region_id"]
         params = requests.data
         model_id = params.pop("model_id")
         plugin_id = "{}_info".format(model_id.split("_", 1)[0])
