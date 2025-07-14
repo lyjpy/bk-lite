@@ -10,8 +10,6 @@ import sys
 import traceback
 from io import open
 
-from six.moves import range
-
 # 禁止安装的 SDK
 FORBIDDEN_SDK = ["request"]
 # 最低版本要求，版本号的每一段都必须是数字

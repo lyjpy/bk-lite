@@ -3,29 +3,31 @@
 # @Time: 2025/2/27 14:00
 # @Author: windyzhao
 from django.conf import settings
+from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
+from django.utils.timezone import now
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-
-from apps.cmdb.models import EXECUTE
-from apps.cmdb.utils.change_record import create_change_record
-from apps.core.decorators.api_permission import  HasPermission
-from apps.rpc.node_mgmt import NodeMgmt
-from config.drf.viewsets import ModelViewSet
 from rest_framework.decorators import action
-from django.db import transaction
-from django.utils.timezone import now
 
 from apps.cmdb.celery_tasks import sync_collect_task
-from config.drf.pagination import CustomPageNumberPagination
-from apps.core.utils.web_utils import WebUtils
-from apps.cmdb.constants import COLLECT_OBJ_TREE, CollectRunStatusType, OPERATOR_COLLECT_TASK, CollectPluginTypes
+from apps.cmdb.constants import COLLECT_OBJ_TREE, OPERATOR_COLLECT_TASK, CollectPluginTypes, CollectRunStatusType
 from apps.cmdb.filters.collect_filters import CollectModelFilter, OidModelFilter
+from apps.cmdb.models import EXECUTE
 from apps.cmdb.models.collect_model import CollectModels, OidMapping
-from apps.cmdb.serializers.collect_serializer import CollectModelSerializer, CollectModelLIstSerializer, \
-    OidModelSerializer
+from apps.cmdb.serializers.collect_serializer import (
+    CollectModelLIstSerializer,
+    CollectModelSerializer,
+    OidModelSerializer,
+)
 from apps.cmdb.services.colletc_service import CollectModelService
+from apps.cmdb.utils.change_record import create_change_record
+from apps.core.decorators.api_permission import HasPermission
+from apps.core.utils.web_utils import WebUtils
+from apps.rpc.node_mgmt import NodeMgmt
+from config.drf.pagination import CustomPageNumberPagination
+from config.drf.viewsets import ModelViewSet
 
 
 class CollectModelViewSet(ModelViewSet):
@@ -37,7 +39,7 @@ class CollectModelViewSet(ModelViewSet):
     pagination_class = CustomPageNumberPagination
 
     @swagger_auto_schema(
-        method='get',
+        method="get",
         operation_id="tree",
         operation_description="查询采集模型对象树",
     )
@@ -48,7 +50,7 @@ class CollectModelViewSet(ModelViewSet):
         return WebUtils.response_success(data)
 
     @swagger_auto_schema(
-        method='get',
+        method="get",
         operation_id="collect_task_list",
         operation_description="查询采集模型任务列表",
         manual_parameters=[
@@ -58,7 +60,7 @@ class CollectModelViewSet(ModelViewSet):
             openapi.Parameter("search", openapi.IN_QUERY, description="任务名称", type=openapi.TYPE_STRING),
             openapi.Parameter("ordering", openapi.IN_QUERY, description="排序", type=openapi.TYPE_STRING),
             openapi.Parameter("exec_status", openapi.IN_QUERY, description="采集状态", type=openapi.TYPE_STRING),
-        ]
+        ],
     )
     @HasPermission("discovery_collection-View")
     @action(methods=["get"], detail=False, url_path="search")
@@ -96,11 +98,7 @@ class CollectModelViewSet(ModelViewSet):
     @swagger_auto_schema(
         operation_id="collect_task_exec_task",
         operation_description="执行配置采集任务",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={},
-            required=[]
-        ),
+        request_body=openapi.Schema(type=openapi.TYPE_OBJECT, properties={}, required=[]),
     )
     @HasPermission("discovery_collection-Execute")
     @action(methods=["POST"], detail=True)
@@ -120,9 +118,15 @@ class CollectModelViewSet(ModelViewSet):
         else:
             sync_collect_task(instance.id)
 
-        create_change_record(operator=request.user.username, model_id=instance.model_id, label="采集任务",
-                             _type=EXECUTE, message=f"执行采集任务. 任务名称: {instance.name}",
-                             inst_id=instance.id, model_object=OPERATOR_COLLECT_TASK)
+        create_change_record(
+            operator=request.user.username,
+            model_id=instance.model_id,
+            label="采集任务",
+            _type=EXECUTE,
+            message=f"执行采集任务. 任务名称: {instance.name}",
+            inst_id=instance.id,
+            model_object=OPERATOR_COLLECT_TASK,
+        )
 
         return WebUtils.response_success(instance.id)
 
@@ -141,7 +145,7 @@ class CollectModelViewSet(ModelViewSet):
 
         data = request.data
         instances = data["instances"]
-        model_map = {instance['model_id']: instance for instance in instances}
+        model_map = {instance["model_id"]: instance for instance in instances}
         CollectModelService.collect_controller(instance, model_map)
         return WebUtils.response_success()
 
@@ -170,8 +174,9 @@ class CollectModelViewSet(ModelViewSet):
         params = requests.GET.dict()
         task_type = params["task_type"]
         # 云对象可以重复选择不做过滤
-        instances = CollectModels.objects.filter(~Q(instances=[]), ~Q(task_type=CollectPluginTypes.CLOUD),
-                                                 task_type=task_type).values_list("instances", flat=True)
+        instances = CollectModels.objects.filter(
+            ~Q(instances=[]), ~Q(task_type=CollectPluginTypes.CLOUD), task_type=task_type
+        ).values_list("instances", flat=True)
         result = [{"id": instance[0]["_id"], "inst_name": instance[0]["inst_name"]} for instance in instances]
         return WebUtils.response_success(result)
 
@@ -182,9 +187,8 @@ class CollectModelViewSet(ModelViewSet):
         查询云的所有区域
         """
         # # 测试commit
-        print("list_regions " )
-        params = requests.POST.dict()
-        region_id = params["region_id"]
+        print("list_regions ")
+        print("list_regions ")
         params = requests.data
         model_id = params.pop("model_id")
         plugin_id = "{}_info".format(model_id.split("_", 1)[0])
