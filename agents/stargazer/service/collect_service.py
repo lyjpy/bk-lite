@@ -2,9 +2,9 @@
 # @File: collect_service.py
 # @Time: 2025/2/27 11:29
 # @Author: windyzhao
+import importlib
 import time
 import traceback
-import importlib
 from asyncio import iscoroutinefunction
 
 from sanic.log import logger
@@ -34,6 +34,8 @@ class CollectService(object):
             "apache_info": "ApacheInfo",
             "activemq_info": "ActiveMQInfo",
             "pgsql_info": "PgsqlInfo",
+            "weblogic_info": "WebLogicInfo",
+            "keepalived_info": "KeepalivedInfo",
         }
 
     def import_plugin(self, plugin_name):
@@ -43,7 +45,7 @@ class CollectService(object):
         :return: 插件类
         """
         try:
-            module = importlib.import_module(f'plugins.{plugin_name}')
+            module = importlib.import_module(f"plugins.{plugin_name}")
             plugin_class = getattr(module, self.plugin_name_map[plugin_name])
             return plugin_class
         except ImportError as e:
@@ -70,16 +72,23 @@ class CollectService(object):
             result = await self.execute(plugin_instance.list_all_resources)
             return result
         except Exception as e:
-            logger.info(f"Error loading plugin {self.plugin_name}: {traceback.format_exc()}")
+            logger.info(
+                f"Error loading plugin {self.plugin_name}: {traceback.format_exc()}"
+            )
             # 生成错误指标数据，直接转换为Prometheus文本格式
             current_timestamp = int(time.time() * 1000)  # 毫秒时间戳
             error_type = str(type(e).__name__)
 
             # 直接构造Prometheus格式字符串
-            prometheus_lines = ["# HELP collection_status Auto-generated help for collection_status",
-                                "# TYPE collection_status gauge"]
+            prometheus_lines = [
+                "# HELP collection_status Auto-generated help for collection_status",
+                "# TYPE collection_status gauge",
+            ]
             # 添加采集状态指标
-            status_metric = f'collection_status{{plugin="{self.plugin_name}",status="error",error_type="{error_type}"}} 1 {current_timestamp}'
+            status_metric = (
+                f'collection_status{{plugin="{self.plugin_name}",status="error",'
+                f'error_type="{error_type}"}} 1 {current_timestamp}'
+            )
             prometheus_lines.append(status_metric)
 
             # 确保最后以换行符结尾
@@ -91,7 +100,9 @@ class CollectService(object):
             plugin_instance = plugin_class(self.params)
             result = plugin_instance.list_regions()
             return {"result": result, "success": True}
-        except Exception as e:
-            logger.info(f"Error list_regions plugin {self.plugin_name}: {traceback.format_exc()}")
+        except Exception:
+            logger.info(
+                f"Error list_regions plugin {self.plugin_name}: {traceback.format_exc()}"
+            )
             # 生成错误指标数据，直接转换为Prometheus文本格式
             return {"result": [], "success": False}

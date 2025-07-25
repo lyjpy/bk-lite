@@ -3,17 +3,23 @@
 # @Time: 2025/3/21 14:19
 # @Author: windyzhao
 import ipaddress
-from abc import abstractmethod, ABCMeta
+from abc import ABCMeta, abstractmethod
 
-from jinja2 import Environment, FileSystemLoader, DebugUndefined
+from jinja2 import DebugUndefined, Environment, FileSystemLoader
 
 
 class BaseNodeParams(metaclass=ABCMeta):
     PLUGIN_MAP = {}  # 插件名称映射
     plugin_name = None
     _registry = {}  # 自动收集支持的 model_id 对应的子类
-    BASE_INTERVAL_MAP = {"vmware_vc": 300, "network": 300, "network_topo": 300, "mysql_info": 300,
-                         "aliyun_account": 300, "qcloud": 300, }  # 默认的采集间隔时间
+    BASE_INTERVAL_MAP = {
+        "vmware_vc": 300,
+        "network": 300,
+        "network_topo": 300,
+        "mysql_info": 300,
+        "aliyun_account": 300,
+        "qcloud": 300,
+    }  # 默认的采集间隔时间
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -59,7 +65,7 @@ class BaseNodeParams(metaclass=ABCMeta):
         将类似 '192.168.0.1-192.168.0.10' 的网段拆分成单个 IP 地址列表
         """
         try:
-            start_str, end_str = ip_range.split('-')
+            start_str, end_str = ip_range.split("-")
             start_ip = ipaddress.IPv4Address(start_str.strip())
             end_ip = ipaddress.IPv4Address(end_str.strip())
         except Exception as e:
@@ -68,7 +74,10 @@ class BaseNodeParams(metaclass=ABCMeta):
         if start_ip > end_ip:
             raise ValueError("起始 IP 不能大于结束 IP")
 
-        ips = [str(ipaddress.IPv4Address(ip)) for ip in range(int(start_ip), int(end_ip) + 1)]
+        ips = [
+            str(ipaddress.IPv4Address(ip))
+            for ip in range(int(start_ip), int(end_ip) + 1)
+        ]
         return ips
 
     @property
@@ -138,18 +147,20 @@ class BaseNodeParams(metaclass=ABCMeta):
                 "timeout": self.timeout,
                 "response_timeout": self.response_timeout,
                 "headers": self.custom_headers(host=host),
-                "config_type": self.model_id
+                "config_type": self.model_id,
             }
             jinja_context = self.render_template(context=content)
-            nodes.append({
-                "id": self.get_instance_id(host),
-                "collect_type": "http",
-                "type": self.model_id,
-                "content": jinja_context,
-                "node_id": node["id"],
-                "collector_name": "Telegraf",
-                "env_config": {}
-            })
+            nodes.append(
+                {
+                    "id": self.get_instance_id(host),
+                    "collect_type": "http",
+                    "type": self.model_id,
+                    "content": jinja_context,
+                    "node_id": node["id"],
+                    "collector_name": "Telegraf",
+                    "env_config": {},
+                }
+            )
         return nodes
 
     @staticmethod
@@ -166,8 +177,10 @@ class BaseNodeParams(metaclass=ABCMeta):
         """
         file_name = "base.child.toml.j2"
         template_dir = "apps/cmdb/plugins/Telegraf/http/"
-        env = Environment(loader=FileSystemLoader(template_dir), undefined=DebugUndefined)
-        env.filters['to_toml'] = self.to_toml_dict
+        env = Environment(
+            loader=FileSystemLoader(template_dir), undefined=DebugUndefined
+        )
+        env.filters["to_toml"] = self.to_toml_dict
         template = env.get_template(file_name)
         return template.render(context)
 
@@ -313,7 +326,7 @@ class AliyunNodeParams(BaseNodeParams):
         credential_data = {
             "access_key": self.credential.get("accessKey", ""),
             "access_secret": self.credential.get("accessSecret", ""),
-            "region_id": regions_id
+            "region_id": regions_id,
         }
         return credential_data
 
@@ -342,13 +355,17 @@ class SSHNodeParamsMixin:
         }
         host_ip = host.get("ip_addr", "") if host and isinstance(host, dict) else host
         if host_ip != node_ip:
-            credential_data["username"] = self.credential.get("username", ""),
-            credential_data["password"] = self.credential.get("password", ""),
-            credential_data["port"] = self.credential.get("port", 22),
+            credential_data["username"] = (self.credential.get("username", ""),)
+            credential_data["password"] = (self.credential.get("password", ""),)
+            credential_data["port"] = (self.credential.get("port", 22),)
         return credential_data
 
     def get_instance_id(self, instance):
-        return f"{self.instance.id}_{instance}_{instance['inst_name']}" if self.has_set_instances else f"{self.instance.id}_{instance}"
+        return (
+            f"{self.instance.id}_{instance}_{instance['inst_name']}"
+            if self.has_set_instances
+            else f"{self.instance.id}_{instance}"
+        )
 
 
 class HostNodeParams(SSHNodeParamsMixin, BaseNodeParams):
@@ -440,6 +457,16 @@ class ActiveMQNodeParams(SSHNodeParamsMixin, BaseNodeParams):
 class PgsqlNodeParams(SSHNodeParamsMixin, BaseNodeParams):
     supported_model_id = "postgresql"
     plugin_name = "pgsql_info"
+
+
+class WeblogicNodeParams(SSHNodeParamsMixin, BaseNodeParams):
+    supported_model_id = "weblogic"
+    plugin_name = "weblogic_info"
+
+
+class KeepalivedNodeParams(SSHNodeParamsMixin, BaseNodeParams):
+    supported_model_id = "weblogic"
+    plugin_name = "weblogic_info"
 
 
 class NodeParamsFactory:

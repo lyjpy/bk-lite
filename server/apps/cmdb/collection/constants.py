@@ -1,8 +1,12 @@
 K8S_WORKLOAD_REPLICASET = "prometheus_remote_write_kube_replicaset_created"
 K8S_WORKLOAD_REPLICASET_OWNER = "prometheus_remote_write_kube_replicaset_owner"
 K8S_POD_INFO = "prometheus_remote_write_kube_pod_info"
-K8S_POD_CONTAINER_RESOURCE_LIMITS = "prometheus_remote_write_kube_pod_container_resource_limits"
-K8S_POD_CONTAINER_RESOURCE_REQUESTS = "prometheus_remote_write_kube_pod_container_resource_requests"
+K8S_POD_CONTAINER_RESOURCE_LIMITS = (
+    "prometheus_remote_write_kube_pod_container_resource_limits"
+)
+K8S_POD_CONTAINER_RESOURCE_REQUESTS = (
+    "prometheus_remote_write_kube_pod_container_resource_requests"
+)
 K8S_NODE_INFO = "prometheus_remote_write_kube_node_info"
 K8S_NODE_ROLE = "prometheus_remote_write_kube_node_role"
 K8S_NODE_STATUS_CAPACITY = "prometheus_remote_write_kube_node_status_capacity"
@@ -18,7 +22,11 @@ K8S_JOB_ANNOTATIONS = "prometheus_remote_write_kube_job_annotations"
 K8S_CRONJOB_ANNOTATIONS = "prometheus_remote_write_kube_cronjob_annotations"
 K8S_REPLICASET_ANNOTATIONS = "prometheus_remote_write_kube_replicaset_annotations"
 
-REPLICAS_METRICS = {K8S_STATEFULSET_REPLICAS, K8S_REPLICASET_REPLICAS, K8S_DEPLOYMENT_REPLICAS}
+REPLICAS_METRICS = {
+    K8S_STATEFULSET_REPLICAS,
+    K8S_REPLICASET_REPLICAS,
+    K8S_DEPLOYMENT_REPLICAS,
+}
 # workload 注解
 ANNOTATIONS_METRICS = [
     K8S_DEPLOYMENT_ANNOTATIONS,
@@ -26,7 +34,7 @@ ANNOTATIONS_METRICS = [
     K8S_STATEFULSET_ANNOTATIONS,
     K8S_JOB_ANNOTATIONS,
     K8S_CRONJOB_ANNOTATIONS,
-    K8S_REPLICASET_ANNOTATIONS
+    K8S_REPLICASET_ANNOTATIONS,
 ]
 
 COLLECTION_METRICS = {
@@ -45,7 +53,11 @@ COLLECTION_METRICS = {
         # K8S_STATEFULSET_REPLICAS
     ],
     "node": [K8S_NODE_INFO, K8S_NODE_ROLE, K8S_NODE_STATUS_CAPACITY],
-    "pod": [K8S_POD_INFO, K8S_POD_CONTAINER_RESOURCE_LIMITS, K8S_POD_CONTAINER_RESOURCE_REQUESTS],
+    "pod": [
+        K8S_POD_INFO,
+        K8S_POD_CONTAINER_RESOURCE_LIMITS,
+        K8S_POD_CONTAINER_RESOURCE_REQUESTS,
+    ],
 }
 COLLECTION_METRICS["workload"].extend(ANNOTATIONS_METRICS)
 
@@ -97,13 +109,18 @@ POD_NAMESPACE_RELATION = "k8s_pod_group_k8s_namespace"
 # POD_NAMESPACE_RELATION = "k8s_namespace_group_k8s_pod"
 
 
-VMWARE_CLUSTER = ["vmware_vc_info_gauge", "vmware_ds_info_gauge", "vmware_esxi_info_gauge", "vmware_vm_info_gauge"]
+VMWARE_CLUSTER = [
+    "vmware_vc_info_gauge",
+    "vmware_ds_info_gauge",
+    "vmware_esxi_info_gauge",
+    "vmware_vm_info_gauge",
+]
 
 VMWARE_COLLECT_MAP = {
     "vmware_vc_info_gauge": "vmware_vc",
     "vmware_ds_info_gauge": "vmware_ds",
     "vmware_vm_info_gauge": "vmware_vm",
-    "vmware_esxi_info_gauge": "vmware_esxi"
+    "vmware_esxi_info_gauge": "vmware_esxi",
 }
 
 # "network_interfaces_info_gauge"
@@ -116,9 +133,14 @@ PROTOCOL_METRIC_MAP = {
 
 # aliyun
 ALIYUN_COLLECT_CLUSTER = [
-    "aliyun_ecs_info_gauge", "aliyun_bucket_info_gauge", "aliyun_mysql_info_gauge",
-    "aliyun_pgsql_info_gauge", "aliyun_redis_info_gauge", "aliyun_mongodb_info_gauge",
-    "aliyun_kafka_info_gauge", "aliyun_clb_info_gauge"
+    "aliyun_ecs_info_gauge",
+    "aliyun_bucket_info_gauge",
+    "aliyun_mysql_info_gauge",
+    "aliyun_pgsql_info_gauge",
+    "aliyun_redis_info_gauge",
+    "aliyun_mongodb_info_gauge",
+    "aliyun_kafka_info_gauge",
+    "aliyun_clb_info_gauge",
 ]
 
 HOST_COLLECT_METRIC = ["host_info_gauge"]
@@ -131,7 +153,7 @@ DB_COLLECT_METRIC_MAP = {
 }
 
 MIDDLEWARE_METRIC_MAP = {
-    "nginx" : ["nginx_info_gauge"],
+    "nginx": ["nginx_info_gauge"],
     "zookeeper": ["zookeeper_info_gauge"],
     "kafka": ["kafka_info_gauge"],
     "etcd": ["etcd_info_gauge"],
@@ -139,13 +161,24 @@ MIDDLEWARE_METRIC_MAP = {
     "tomcat": ["tomcat_info_gauge"],
     "apache": ["apache_info_gauge"],
     "activemq": ["activemq_info_gauge"],
+    "weblogic": ["weblogic_info_gauge"],
+    "keepalived": ["keepalived_info_gauge"],
 }
 
 # Tencent cloud
 QCLOUD_COLLECT_CLUSTER = [
-    "qcloud_cvm_info_gauge","qcloud_rocketmq_info_gauge","qcloud_mysql_info_gauge",
-    "qcloud_redis_info_gauge","qcloud_mongodb_info_gauge","qcloud_pgsql_info_gauge",
-    "qcloud_pulsar_cluster_info_gauge","qcloud_cmq_info_gauge","qcloud_cmq_topic_info_gauge",
-    "qcloud_clb_info_gauge","qcloud_eip_info_gauge","qcloud_bucket_info_gauge","qcloud_filesystem_info_gauge",
-    "qcloud_domain_info_gauge"
+    "qcloud_cvm_info_gauge",
+    "qcloud_rocketmq_info_gauge",
+    "qcloud_mysql_info_gauge",
+    "qcloud_redis_info_gauge",
+    "qcloud_mongodb_info_gauge",
+    "qcloud_pgsql_info_gauge",
+    "qcloud_pulsar_cluster_info_gauge",
+    "qcloud_cmq_info_gauge",
+    "qcloud_cmq_topic_info_gauge",
+    "qcloud_clb_info_gauge",
+    "qcloud_eip_info_gauge",
+    "qcloud_bucket_info_gauge",
+    "qcloud_filesystem_info_gauge",
+    "qcloud_domain_info_gauge",
 ]
